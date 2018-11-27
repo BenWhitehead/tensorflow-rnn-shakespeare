@@ -15,10 +15,10 @@
 
 import tensorflow as tf
 import numpy as np
-import my_txtutils
+import shakespeare.model.my_txtutils as txt
 
 # these must match what was saved !
-ALPHASIZE = my_txtutils.ALPHASIZE
+ALPHASIZE = txt.ALPHASIZE
 NLAYERS = 3
 INTERNALSIZE = 512
 
@@ -49,7 +49,7 @@ ncnt = 0
 with tf.Session() as sess:
     new_saver = tf.train.import_meta_graph('checkpoints/rnn_train_1495455686-0.meta')
     new_saver.restore(sess, author)
-    x = my_txtutils.convert_from_alphabet(ord("L"))
+    x = txt.convert_from_alphabet(ord("L"))
     x = np.array([[x]])  # shape [BATCHSIZE, SEQLEN] with BATCHSIZE=1 and SEQLEN=1
 
     # initial values
@@ -64,9 +64,9 @@ with tf.Session() as sess:
 
         # Recommended: topn = 10 for intermediate checkpoints, topn=2 or 3 for fully trained checkpoints
 
-        c = my_txtutils.sample_from_probabilities(yo, topn=2)
+        c = txt.sample_from_probabilities(yo, topn=2)
         y = np.array([[c]])  # shape [BATCHSIZE, SEQLEN] with BATCHSIZE=1 and SEQLEN=1
-        c = chr(my_txtutils.convert_to_alphabet(c))
+        c = chr(txt.convert_to_alphabet(c))
         print(c, end="")
 
         if c == '\n':
