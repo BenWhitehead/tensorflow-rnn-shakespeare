@@ -6,9 +6,11 @@ export BUCKET="gs://${PROJECT_NAME}-${MODEL_NAME}"
 
 export SCALE_TIER=${SCALE_TIER:-"STANDARD_1"}
 
-# TODO: Tell the code where the text files are for it to work on
 export PACKAGE_PATH="shakespeare/"
 export MODULE_NAME="shakespeare.model.rnn_train"
+export    TRAIN_FILES="${BUCKET}/data/*.txt"
+export CHECKPOINT_DIR="${BUCKET}/checkpoint"
+export        LOG_DIR="${BUCKET}/log"
 
 function now() {
   date --utc '+%Y%m%d%H%M%S'
@@ -35,7 +37,9 @@ function trainLocally() { (
     --package-path "$PACKAGE_PATH" \
     --module-name "$MODULE_NAME" \
     -- \
-      --train-files "$(pwd)/shakespeare/data/*.txt"
+      --train-files "$(pwd)/shakespeare/data/*.txt" \
+      --checkpoint-dir "$(pwd)/output-local/checkpoint" \
+      --log-dir "$(pwd)/output-local/log"
 
 ) }
 
@@ -55,6 +59,10 @@ function trainModel() { (
     --job-dir ${outputPath} \
     --package-path "$PACKAGE_PATH" \
     --module-name "$MODULE_NAME"
+    -- \
+      --train-files "$TRAIN_FILES" \
+      --checkpoint-dir "$CHECKPOINT_DIR" \
+      --log-dir "$LOG_DIR"
 
 
 ) }
