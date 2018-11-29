@@ -12,6 +12,8 @@ export    TRAIN_FILES="${BUCKET}/data/*.txt"
 export CHECKPOINT_DIR="${BUCKET}/checkpoint"
 export        LOG_DIR="${BUCKET}/log"
 
+export MODEL_VERSION="v5"
+
 function now() {
   date --utc '+%Y%m%d%H%M%S'
 }
@@ -24,7 +26,7 @@ function createBucket() { (
 
 function uploadData() { (
 
-  gsutil cp -r shakespeare/* "$BUCKET/data"
+  gsutil cp -r shakespeare/data/* "$BUCKET/data"
 
 ) }
 
@@ -45,25 +47,26 @@ function trainLocally() { (
 
 function trainModel() { (
 
-  local jobName="shakespeare_${SCALE_TIER}_v1"
+  local jobName="shakespeare_${SCALE_TIER}_${MODEL_VERSION}"
   local outputPath="${BUCKET}/$jobName"
   echo "Writing results to ${outputPath}" | tee "logs/${jobName}.log"
 
   mkdir -p logs
 
   gcloud ml-engine jobs submit training ${jobName} \
+    --verbosity=debug \
     --region ${REGION} \
     --runtime-version 1.10 \
 		--python-version 3.5 \
     --scale-tier ${SCALE_TIER} \
     --job-dir ${outputPath} \
     --package-path "$PACKAGE_PATH" \
-    --module-name "$MODULE_NAME"
+    --module-name "$MODULE_NAME" \
     -- \
       --train-files "$TRAIN_FILES" \
       --checkpoint-dir "$CHECKPOINT_DIR" \
-      --log-dir "$LOG_DIR"
-
+      --log-dir "$LOG_DIR" \
+    2>&1 | tee "logs/${jobName}.log"
 
 ) }
 
@@ -76,7 +79,7 @@ function createModel() { (
 
 function createModelVersion() { (
 
-  gcloud ml-engine versions create "v1" \
+  gcloud ml-engine versions create "${MODEL_VERSION}" \
     --model ${MODEL_NAME} \
     --origin ${outputPath} \
     --runtime-version 1.10 \
